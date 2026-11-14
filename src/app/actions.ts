@@ -19,12 +19,9 @@ export async function createEmptyQuizAction(formData: FormData) {
 }
 
 const QuestionInput = z.object({
-  prompt: z.string().trim().min(1, "Câu hỏi không được để trống."),
+  prompt: z.string().trim(),
   image: z.string().regex(IMAGE_NAME_RE).nullable().default(null),
-  options: z
-    .array(z.string().trim().min(1, "Phương án không được để trống."))
-    .min(2, "Mỗi câu cần ít nhất 2 phương án.")
-    .max(6),
+  options: z.array(z.string().trim()).max(6),
   correctIndex: z.number().int().min(0),
   explanation: z.string().trim().default(""),
 });
@@ -40,9 +37,19 @@ export async function saveQuizAction(
 ): Promise<FormState> {
   const parsed = SaveQuizInput.safeParse(payload);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ." };
-  const data = parsed.data;
-  const bad = data.questions.findIndex((q) => q.correctIndex >= q.options.length);
-  if (bad >= 0) return { error: `Câu ${bad + 1}: chưa chọn đáp án đúng.` };
+
+  // Blank options are dropped; the correct answer index is remapped to match.
+  const cleaned = [];
+  for (const [i, q] of parsed.data.questions.entries()) {
+    const label = `Câu ${i + 1}`;
+    if (!q.prompt) return { error: `${label}: nội dung câu hỏi đang để trống.` };
+    const kept = q.options.map((text, idx) => ({ text, idx })).filter((o) => o.text);
+    if (kept.length === 0) return { error: `${label}: cần ít nhất 1 phương án.` };
+    const correctIndex = kept.findIndex((o) => o.idx === q.correctIndex);
+    if (correctIndex < 0) return { error: `${label}: đáp án đúng đang để trống.` };
+    cleaned.push({ ...q, options: kept.map((o) => o.text), correctIndex });
+  }
+  const data = { title: parsed.data.title, questions: cleaned };
 
   db.transaction((tx) => {
     tx.update(quizzes).set({ title: data.title }).where(eq(quizzes.id, quizId)).run();

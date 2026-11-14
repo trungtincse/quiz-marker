@@ -127,7 +127,7 @@ export function QuizEditor({
                 <button
                   type="button"
                   className="text-zinc-400 hover:text-red-600 disabled:opacity-30"
-                  disabled={q.options.length <= 2}
+                  disabled={q.options.length <= 1}
                   onClick={() =>
                     update(q.key, {
                       options: q.options.filter((_, k) => k !== oi),
@@ -140,11 +140,14 @@ export function QuizEditor({
                 </button>
               </div>
             ))}
-            {q.options.length < 6 && (
-              <button type="button" className="text-sm text-violet-600 hover:underline" onClick={() => update(q.key, { options: [...q.options, ""] })}>
-                + Thêm phương án
-              </button>
-            )}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              {q.options.length < 6 && (
+                <button type="button" className="text-violet-600 hover:underline" onClick={() => update(q.key, { options: [...q.options, ""] })}>
+                  + Thêm phương án
+                </button>
+              )}
+              <span className="text-xs text-zinc-500">Phương án để trống sẽ tự bỏ khi lưu.</span>
+            </div>
           </div>
           <input className="input" placeholder="Giải thích (tuỳ chọn)" value={q.explanation} onChange={(e) => update(q.key, { explanation: e.target.value })} />
         </div>

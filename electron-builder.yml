@@ -1,0 +1,37 @@
+appId: com.quizmarker.app
+productName: Quiz Marker
+electronVersion: 45.3.2
+npmRebuild: false
+directories:
+  app: dist-desktop/app
+  output: dist-desktop/release
+# The Next.js server ships with its own node_modules under resources/server,
+# so the Electron shell itself needs no dependencies.
+files:
+  - package.json
+  - main.cjs
+  - icon.png
+  - "!node_modules{,/**}"
+extraResources:
+  - from: dist-desktop/app/server
+    to: server
+    # Include the dot-folder .next, which is skipped by default.
+    filter: ["**/*", ".next/**/*"]
+  # electron-builder never copies a nested node_modules folder, so the
+  # server's dependencies are listed as their own resource.
+  - from: dist-desktop/app/server/node_modules
+    to: server/node_modules
+    filter: ["**/*"]
+linux:
+  target: [AppImage, deb]
+  category: Education
+  icon: desktop/icon.png
+  maintainer: Quiz Marker
+  syncDesktopName: true
+win:
+  target: nsis
+  icon: desktop/icon.png
+mac:
+  target: dmg
+  icon: desktop/icon.png
+  category: public.app-category.education
