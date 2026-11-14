@@ -24,7 +24,9 @@ if (fs.existsSync(path.join(root, "public"))) {
 // Output tracing copies the local ./data folder; never ship personal data.
 fs.rmSync(path.join(server, "data"), { recursive: true, force: true });
 
-fs.copyFileSync(path.join(root, "desktop", "main.cjs"), path.join(out, "main.cjs"));
+for (const file of ["main.cjs", "preload.cjs"]) {
+  fs.copyFileSync(path.join(root, "desktop", file), path.join(out, file));
+}
 fs.copyFileSync(path.join(root, "desktop", "icon.png"), path.join(out, "icon.png"));
 fs.writeFileSync(
   path.join(out, "package.json"),

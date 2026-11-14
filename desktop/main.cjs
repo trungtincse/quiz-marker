@@ -1,7 +1,8 @@
 // Electron entry point: runs the bundled Next.js server in a child process
 // and shows it in a desktop window.
-const { app, BrowserWindow, dialog, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
 const { spawn } = require("node:child_process");
+const fs = require("node:fs/promises");
 const net = require("node:net");
 const path = require("node:path");
 
@@ -80,7 +81,12 @@ function createWindow() {
     icon: path.join(__dirname, "icon.png"),
     autoHideMenuBar: true,
     show: false,
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      preload: path.join(__dirname, "preload.cjs"),
+    },
   });
   mainWindow.once("ready-to-show", () => mainWindow.show());
   mainWindow.on("closed", () => (mainWindow = null));
@@ -102,7 +108,41 @@ function createWindow() {
   mainWindow.loadURL(baseUrl);
 }
 
+// Renders a print page in a hidden window and saves it as a PDF file.
+async function exportPdf(event, { path: pagePath, fileName }) {
+  if (typeof pagePath !== "string" || !/^\/quizzes\/\d+\/print(\?answers=1)?$/.test(pagePath)) {
+    throw new Error("Invalid page");
+  }
+  const safeName = String(fileName || "quiz").replace(/[\\/:*?"<>|]+/g, "-").trim().slice(0, 120) || "quiz";
+  const { canceled, filePath } = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender), {
+    defaultPath: path.join(app.getPath("documents"), `${safeName}.pdf`),
+    filters: [{ name: "PDF", extensions: ["pdf"] }],
+  });
+  if (canceled || !filePath) return null;
+
+  const win = new BrowserWindow({ show: false, webPreferences: { contextIsolation: true, sandbox: true } });
+  try {
+    await win.loadURL(baseUrl + pagePath);
+    // Wait until the page content (streamed after the loading state), its images and fonts are in.
+    await win.webContents.executeJavaScript(`new Promise((resolve) => {
+      const check = () => {
+        if (!document.querySelector("[data-print-ready]")) return setTimeout(check, 50);
+        Promise.all(Array.from(document.images).map((img) => img.complete ? null :
+          new Promise((r) => { img.addEventListener("load", r); img.addEventListener("error", r); })))
+          .then(() => document.fonts.ready).then(() => resolve(true));
+      };
+      check();
+    })`);
+    const pdf = await win.webContents.printToPDF({ pageSize: "A4", printBackground: true, preferCSSPageSize: true });
+    await fs.writeFile(filePath, pdf);
+    return filePath;
+  } finally {
+    win.destroy();
+  }
+}
+
 async function main() {
+  ipcMain.handle("export-pdf", exportPdf);
   try {
     baseUrl = await startServer();
   } catch (err) {

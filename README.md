@@ -43,12 +43,14 @@ Build cho Windows/macOS: chạy `npm run desktop:dist` trên máy Windows/macOS.
 
 - **Soạn / sửa đề**: thêm, xoá, sắp xếp câu hỏi; 1–6 phương án (phương án để trống tự bỏ khi lưu); chọn đáp án đúng; đính kèm ảnh cho câu hỏi (chọn file hoặc dán Ctrl+V, PNG/JPG/GIF/WEBP, tối đa 5MB).
 - **Làm bài**: đáp án đúng không được gửi xuống trình duyệt, chấm điểm trên server.
+- **Xuất PDF**: bản đề trống (có ô họ tên/điểm để in ra làm bài) hoặc bản có đáp án (tô đáp án đúng, giải thích, bảng đáp án). Desktop app lưu thẳng ra file PDF; bản web mở trang in → chọn "Lưu thành PDF".
 - **Lịch sử**: mỗi lượt làm lưu lại từng câu trả lời, kèm bản chụp câu hỏi lúc làm (sửa đề sau không ảnh hưởng lịch sử). Xem lại đúng/sai và giải thích.
 
 ## Cấu trúc
 
 ```
-desktop/main.cjs      Electron: chạy server Next.js ẩn và mở cửa sổ app
+desktop/main.cjs      Electron: chạy server Next.js ẩn, mở cửa sổ app, xuất PDF
+desktop/preload.cjs   cầu nối window.quizMarker.exportPdf cho trang web
 scripts/build-desktop.mjs  build Next standalone + gom file cho Electron
 electron-builder.yml  cấu hình đóng gói (.deb, AppImage, Windows, macOS)
 src/

@@ -15,7 +15,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="vi" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
-        <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
+        <header className="print:hidden sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
           <nav className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <span className="grid size-7 place-items-center rounded-lg bg-violet-600 text-sm text-white">Q</span>
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Link>
           </nav>
         </header>
-        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">{children}</main>
+        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 print:max-w-none print:p-0">{children}</main>
       </body>
     </html>
   );

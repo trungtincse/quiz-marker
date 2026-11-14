@@ -10,6 +10,7 @@ directories:
 files:
   - package.json
   - main.cjs
+  - preload.cjs
   - icon.png
   - "!node_modules{,/**}"
 extraResources:

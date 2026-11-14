@@ -5,6 +5,7 @@ import { getQuiz, listAttempts } from "@/lib/data";
 import { formatDate, LETTERS, percent } from "@/lib/format";
 import { ConfirmButton } from "@/components/confirm-button";
 import { QuestionImage } from "@/components/question-image";
+import { ExportPdf } from "@/components/export-pdf";
 
 export default async function QuizPage({ params }: PageProps<"/quizzes/[id]">) {
   const { id } = await params;
@@ -22,6 +23,7 @@ export default async function QuizPage({ params }: PageProps<"/quizzes/[id]">) {
         <div className="flex flex-wrap gap-2">
           {quiz.questions.length > 0 && <Link href={`/quizzes/${quiz.id}/take`} className="btn-primary">▶ Làm bài</Link>}
           <Link href={`/quizzes/${quiz.id}/edit`} className="btn-ghost">Sửa</Link>
+          {quiz.questions.length > 0 && <ExportPdf quizId={quiz.id} title={quiz.title} />}
           <form action={deleteQuizAction}>
             <input type="hidden" name="id" value={quiz.id} />
             <ConfirmButton message="Xoá đề này cùng toàn bộ lịch sử làm bài?" className="btn-danger">Xoá</ConfirmButton>
